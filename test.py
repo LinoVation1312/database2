@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
+import matplotlib.ticker as ticker
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
@@ -122,11 +123,20 @@ if uploaded_file:
                 # Mettre l'échelle logarithmique pour l'axe des fréquences
                 ax.set_xscale('log')
 
+                # Configurer la grille avec échelle logarithmique
+                ax.grid(True, which="both", axis="x", linestyle='--', color='gray', alpha=0.7)
                 ax.set_title(f"Absorption : {absorption_type}")
                 ax.set_xlabel("Fréquence (Hz)")
                 ax.set_ylabel(absorption_type)
                 ax.legend(title="Échantillons")
-                ax.grid(True, which="both", axis="x")
+
+                # Ajout des ticks log-spacés pour l'axe des fréquences
+                ax.xaxis.set_major_locator(ticker.LogLocator(base=10.0, subs='auto', numticks=10))
+                ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs='auto', numticks=20))
+                ax.set_xscale('log')
+
+                ax.grid(True, which="both", axis="x", linestyle='--', color='gray', alpha=0.7)
+
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
