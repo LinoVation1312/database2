@@ -121,7 +121,7 @@ if uploaded_file:
                     )
                 
                 # Mettre l'échelle logarithmique pour l'axe des fréquences
-                ax.set_xscale('log')
+                ax.set_xscale('log', base=2)
 
                 # Configurer la grille avec échelle logarithmique
                 ax.grid(True, which="both", axis="x", linestyle='--', color='gray', alpha=0.7)
