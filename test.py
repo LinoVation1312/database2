@@ -134,6 +134,7 @@ if uploaded_file:
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=10.0, subs='auto', numticks=10))
                 ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs='auto', numticks=20))
                 ax.set_xscale('log')
+                ax.grid(True)
 
                 ax.grid(True, which="both", axis="x", linestyle='--', color='gray', alpha=0.7)
 
