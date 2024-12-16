@@ -37,14 +37,14 @@ if uploaded_file:
     # Chargement et nettoyage des données
     df = load_data(uploaded_file)
 
-    # Vérification de la présence de la colonne "surface_mass_gm²"
-    if "surface_mass_gm²" not in df.columns:
-        st.error("La colonne 'surface_mass_gm²' est manquante dans les données.")
+    # Vérification de la présence de la colonne "surface_mass_gm2" (notez l'absence du "²")
+    if "surface_mass_gm2" not in df.columns:
+        st.error("La colonne 'surface_mass_gm2' est manquante dans les données.")
     else:
         # Colonnes nécessaires (normalisées)
         columns_to_keep = [
             "sample_number_stn", "trim_level", "project_number", "material_family",
-            "material_supplier", "detailed_description", "surface_mass_gm²", 
+            "material_supplier", "detailed_description", "surface_mass_gm2", 
             "thickness_mm", "assembly_type", "finished_good_surface_aera", 
             "frequency", "alpha_cabin", "alpha_kundt"
         ]
@@ -58,7 +58,7 @@ if uploaded_file:
             df = df[columns_to_keep]
 
             # Nettoyer les colonnes numériques pour éviter les erreurs
-            df["surface_mass_gm²"] = pd.to_numeric(df["surface_mass_gm²"], errors='coerce')
+            df["surface_mass_gm2"] = pd.to_numeric(df["surface_mass_gm2"], errors='coerce')
             df["thickness_mm"] = pd.to_numeric(df["thickness_mm"], errors='coerce')
 
             # Sélection de critères de filtre
@@ -66,9 +66,9 @@ if uploaded_file:
             supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
             surface_mass = st.sidebar.slider(
                 "Sélectionnez une plage de Surface Mass (g/m²) :", 
-                min_value=int(df["surface_mass_gm²"].min()), 
-                max_value=int(df["surface_mass_gm²"].max()), 
-                value=(int(df["surface_mass_gm²"].min()), int(df["surface_mass_gm²"].max()))
+                min_value=int(df["surface_mass_gm2"].min()), 
+                max_value=int(df["surface_mass_gm2"].max()), 
+                value=(int(df["surface_mass_gm2"].min()), int(df["surface_mass_gm2"].max()))
             )
             thickness = st.sidebar.slider(
                 "Sélectionnez une plage de Thickness (mm) :", 
@@ -86,8 +86,8 @@ if uploaded_file:
             if supplier != "Tous":
                 filtered_df = filtered_df[filtered_df["material_supplier"] == supplier]
             filtered_df = filtered_df[
-                (filtered_df["surface_mass_gm²"] >= surface_mass[0]) & 
-                (filtered_df["surface_mass_gm²"] <= surface_mass[1])
+                (filtered_df["surface_mass_gm2"] >= surface_mass[0]) & 
+                (filtered_df["surface_mass_gm2"] <= surface_mass[1])
             ]
             filtered_df = filtered_df[
                 (filtered_df["thickness_mm"] >= thickness[0]) & 
