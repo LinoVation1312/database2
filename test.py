@@ -126,7 +126,7 @@ if uploaded_file:
                 ax.set_xlabel("Fréquence (Hz)")
                 ax.set_ylabel(absorption_type)
                 ax.legend(title="Échantillons")
-                ax.grid(True)
+                ax.grid(True, which="both", axis="x")
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
