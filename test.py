@@ -50,6 +50,10 @@ if uploaded_file:
         # Filtrer uniquement les colonnes nécessaires
         df = df[columns_to_keep]
 
+        # Nettoyer les colonnes numériques pour éviter les erreurs
+        df["surface_mass_gm²"] = pd.to_numeric(df["surface_mass_gm²"], errors='coerce')
+        df["thickness_mm"] = pd.to_numeric(df["thickness_mm"], errors='coerce')
+
         # Sélection de critères de filtre
         trim_level = st.sidebar.selectbox("Sélectionnez un Trim Level :", ["Tous"] + list(df["trim_level"].unique()))
         supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
