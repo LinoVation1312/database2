@@ -50,13 +50,48 @@ if uploaded_file:
         # Filtrer uniquement les colonnes nécessaires
         df = df[columns_to_keep]
 
-        # Sélection de plusieurs échantillons
-        sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", df["sample_number_stn"].unique())
+        # Sélection de critères de filtre
+        trim_level = st.sidebar.selectbox("Sélectionnez un Trim Level :", ["Tous"] + list(df["trim_level"].unique()))
+        supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
+        surface_mass = st.sidebar.slider(
+            "Sélectionnez une plage de Surface Mass (g/m²) :", 
+            min_value=int(df["surface_mass_gm²"].min()), 
+            max_value=int(df["surface_mass_gm²"].max()), 
+            value=(int(df["surface_mass_gm²"].min()), int(df["surface_mass_gm²"].max()))
+        )
+        thickness = st.sidebar.slider(
+            "Sélectionnez une plage de Thickness (mm) :", 
+            min_value=float(df["thickness_mm"].min()), 
+            max_value=float(df["thickness_mm"].max()), 
+            value=(float(df["thickness_mm"].min()), float(df["thickness_mm"].max()))
+        )
+        assembly_type = st.sidebar.selectbox("Sélectionnez un Assembly Type :", ["Tous"] + list(df["assembly_type"].unique()))
+
+        # Appliquer les filtres sélectionnés
+        filtered_df = df.copy()
+
+        if trim_level != "Tous":
+            filtered_df = filtered_df[filtered_df["trim_level"] == trim_level]
+        if supplier != "Tous":
+            filtered_df = filtered_df[filtered_df["material_supplier"] == supplier]
+        filtered_df = filtered_df[
+            (filtered_df["surface_mass_gm²"] >= surface_mass[0]) & 
+            (filtered_df["surface_mass_gm²"] <= surface_mass[1])
+        ]
+        filtered_df = filtered_df[
+            (filtered_df["thickness_mm"] >= thickness[0]) & 
+            (filtered_df["thickness_mm"] <= thickness[1])
+        ]
+        if assembly_type != "Tous":
+            filtered_df = filtered_df[filtered_df["assembly_type"] == assembly_type]
+
+        # Sélection de plusieurs échantillons parmi les échantillons filtrés
+        sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_number_stn"].unique())
 
         # Si des échantillons sont sélectionnés
         if sample_numbers:
             # Filtrage des données pour les échantillons sélectionnés
-            filtered_data = df[df["sample_number_stn"].isin(sample_numbers)]
+            filtered_data = filtered_df[filtered_df["sample_number_stn"].isin(sample_numbers)]
 
             # Choix du type d'absorption
             absorption_type = st.sidebar.radio("Type d'absorption :", ["alpha_cabin", "alpha_kundt"])
