@@ -22,9 +22,6 @@ def load_data(file):
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
     )
 
-    # Vérifier les noms de colonnes
-    st.write("Noms de colonnes après normalisation :", df.columns.tolist())
-
     # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
     if "sample_number_stn1" in df.columns:
         df = df.drop(columns=["sample_number_stn1"])
