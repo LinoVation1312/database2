@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import io
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
@@ -117,11 +119,27 @@ if uploaded_file:
                         marker='o', linestyle='-', label=f"{sample}"
                     )
                 
+                # Mettre l'échelle logarithmique pour l'axe des fréquences
+                ax.set_xscale('log')
+
                 ax.set_title(f"Absorption : {absorption_type}")
                 ax.set_xlabel("Fréquence (Hz)")
                 ax.set_ylabel(absorption_type)
                 ax.legend(title="Échantillons")
                 ax.grid(True)
                 st.pyplot(fig)
+
+                # Générer un lien pour télécharger le graphique en PDF
+                pdf_bytes = io.BytesIO()
+                with PdfPages(pdf_bytes) as pdf:
+                    pdf.savefig(fig)
+                pdf_bytes.seek(0)
+
+                st.download_button(
+                    label="Télécharger le graphique en PDF",
+                    data=pdf_bytes,
+                    file_name="courbes_absorption.pdf",
+                    mime="application/pdf"
+                )
             else:
                 st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
