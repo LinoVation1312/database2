@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
 import matplotlib.ticker as ticker
+import numpy as np
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
@@ -132,11 +133,16 @@ if uploaded_file:
 
                 # Ajout des ticks log-spacés pour l'axe des fréquences
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
-                ax.xaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=20))
-                ax.set_xscale('log', base=2)
+
+                # Changer l'échelle pour afficher des valeurs entre 1 et 10000
+                def custom_ticks(x, pos):
+                    if x == 0:
+                        return "0"
+                    return f"{int(2**x):,}"
+
+                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
+
                 ax.grid(True)
-
-
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
