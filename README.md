@@ -42,19 +42,22 @@ thickness_mm: Thickness (mm)
 assembly_type: Assembly type
 frequency: Frequency (Hz)
 alpha_cabin or alpha_kundt: Acoustic absorption coefficient
+```
 
+## Contributing
 
-Contributing
 Fork this project.
 Create a branch for your changes (git checkout -b feature/feature-name).
 Make your changes and commit them (git commit -am 'Added feature X').
 Push to the branch (git push origin feature/feature-name).
 Open a pull request to propose your changes.
-Author
-Lino Conord - Lead Developer - https://github.com/LinoVation1312
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
-less
-Copier le code
+
+## Author
+
+Lino Conord - Novice Developer - https://github.com/LinoVation1312
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
