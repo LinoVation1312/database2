@@ -11,8 +11,7 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 @st.cache_data
 def load_data(file):
     """
-    Chargement des données depuis Excel et normalisation stricte des colonnes.
-    Recherche de la feuille "DATA" en ignorant les espaces et gestion des colonnes avec des caractères spéciaux.
+    Chargement des données depuis Excel avec gestion flexible de l'en-tête et suppression des colonnes inutiles.
     """
     # Charger les noms des feuilles
     xls = pd.ExcelFile(file, engine="openpyxl")
@@ -29,9 +28,20 @@ def load_data(file):
         st.error("La feuille 'DATA' est introuvable dans le fichier Excel.")
         return None
     
-    # Charger la feuille DATA
-    df = pd.read_excel(xls, sheet_name=sheet_name)
-    
+    # Essayer de charger avec un en-tête à la première ou à la troisième ligne
+    try:
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=0)  # Premier essai : en-tête sur la première ligne
+    except Exception as e:
+        st.warning(f"Erreur avec header=0 : {e}. Tentons header=2.")
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=2)  # Second essai : en-tête sur la troisième ligne
+
+    # Affichage des colonnes pour vérification
+    st.write("Colonnes après chargement :")
+    st.write(df.columns.tolist())
+
+    # Nettoyage des colonnes inutiles (colonnes 'Unnamed')
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]  # Supprimer les colonnes "Unnamed"
+
     # Normaliser les noms de colonnes
     df.columns = (
         df.columns
@@ -43,7 +53,7 @@ def load_data(file):
         .str.replace('g/m²', 'gm2')  # Remplacer 'g/m²' par 'gm2'
     )
 
-    # Affichage des colonnes après normalisation pour inspection
+    # Affichage des colonnes après nettoyage
     st.write("Colonnes après nettoyage et normalisation :")
     st.write(df.columns.tolist())
 
