@@ -44,19 +44,16 @@ if uploaded_file:
     # Chargement et nettoyage des données
     df = load_data(uploaded_file)
 
-    # Vérification de la présence de la colonne "surface_mass_gm2" (notez l'absence du "²")
     if df is not None:
         surface_mass_column = None
-        # Rechercher la colonne correspondant à 'surface_mass_gm2' ou à une de ses variantes
         for col in df.columns:
             if 'surface_mass' in col:
                 surface_mass_column = col
                 break
 
         if surface_mass_column is None:
-            st.error("La colonne 'surface_mass_gm2' ou une colonne équivalente est manquante dans les données.")
+            st.error("La colonne 'surface_mass_gm2' ou équivalente est manquante dans les données.")
         else:
-            # Colonnes nécessaires (normalisées)
             columns_to_keep = [
                 "sample_number_stn", "trim_level", "project_number", "material_family",
                 "material_supplier", "detailed_description", surface_mass_column, 
@@ -64,26 +61,25 @@ if uploaded_file:
                 "frequency", "alpha_cabin", "alpha_kundt"
             ]
 
-            # Vérifier les colonnes manquantes
             missing_columns = [col for col in columns_to_keep if col not in df.columns]
             if missing_columns:
                 st.error(f"Colonnes manquantes : {missing_columns}")
             else:
-                # Filtrer uniquement les colonnes nécessaires
                 df = df[columns_to_keep]
 
-                # Nettoyer les colonnes numériques pour éviter les erreurs
                 df[surface_mass_column] = pd.to_numeric(df[surface_mass_column], errors='coerce')
                 df["thickness_mm"] = pd.to_numeric(df["thickness_mm"], errors='coerce')
 
                 # Création d'une colonne enrichie pour affichage
                 df["sample_info"] = (
                     df["sample_number_stn"] + " | " +
+                    df["assembly_type"] + " | " +
                     df[surface_mass_column].astype(str) + " g/m² | " +
-                    df["material_family"]
+                    df["material_family"] + " | " +
+                    df["trim_level"]
                 )
 
-                # Sélection de critères de filtre
+                # Sélection des filtres
                 trim_level = st.sidebar.selectbox("Sélectionnez un Trim Level :", ["Tous"] + list(df["trim_level"].unique()))
                 supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
                 surface_mass = st.sidebar.slider(
@@ -100,9 +96,7 @@ if uploaded_file:
                 )
                 assembly_type = st.sidebar.selectbox("Sélectionnez un Assembly Type :", ["Tous"] + list(df["assembly_type"].unique()))
 
-                # Appliquer les filtres sélectionnés
                 filtered_df = df.copy()
-
                 if trim_level != "Tous":
                     filtered_df = filtered_df[filtered_df["trim_level"] == trim_level]
                 if supplier != "Tous":
@@ -118,18 +112,12 @@ if uploaded_file:
                 if assembly_type != "Tous":
                     filtered_df = filtered_df[filtered_df["assembly_type"] == assembly_type]
 
-                # Sélection enrichie des échantillons
-                sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_info"].unique())
+                sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs échantillons :", filtered_df["sample_info"].unique())
 
-                # Si des échantillons sont sélectionnés
                 if sample_numbers:
-                    # Filtrage des données pour les échantillons sélectionnés
                     filtered_data = filtered_df[filtered_df["sample_info"].isin(sample_numbers)]
 
-                    # Choix du type d'absorption
                     absorption_type = st.sidebar.radio("Type d'absorption :", ["alpha_cabin", "alpha_kundt"])
-
-                    # Fréquences spécifiques
                     freq_ticks = {
                         "alpha_cabin": [315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000],
                         "alpha_kundt": [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300]
