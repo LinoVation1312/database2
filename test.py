@@ -13,7 +13,7 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 def load_data(file):
     """
     Chargement des données depuis Excel et normalisation stricte des colonnes.
-    Recherche de la feuille "DATA" en ignorant les espaces.
+    Recherche de la feuille "DATA" en ignorant les espaces et gestion des colonnes avec des caractères spéciaux.
     """
     # Charger les noms des feuilles
     xls = pd.ExcelFile(file, engine="openpyxl")
@@ -40,6 +40,7 @@ def load_data(file):
         .str.lower()         # Convertir en minuscules
         .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
+        .str.replace('gm²', 'gm2')  # Remplacer 'gm²' par 'gm2'
     )
 
     # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
