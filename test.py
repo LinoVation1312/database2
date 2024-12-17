@@ -11,8 +11,7 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 @st.cache_data
 def load_data(file):
     """
-    Chargement des données depuis Excel et normalisation stricte des colonnes.
-    Cette version gère les variations dans le nom de la feuille, la ligne d'en-tête et fait correspondre les colonnes par position.
+    Chargement des données depuis Excel et correspondance des colonnes par mots-clés dans les noms de colonnes.
     """
     # Charger le fichier Excel
     xls = pd.ExcelFile(file, engine="openpyxl")
@@ -39,38 +38,61 @@ def load_data(file):
     # Charger les données en tenant compte de la ligne d'en-tête correcte
     df = pd.read_excel(xls, sheet_name=sheet_name, header=header_row, engine="openpyxl")
 
-    # Liste des étiquettes de colonnes attendues
-    expected_columns = [
-        "sample_number_stn", "trim_level", "project_number", "material_family",
-        "material_supplier", "detailed_description", "surface_mass_gm2", 
-        "thickness_mm", "assembly_type", "finished_good_surface_aera", 
-        "frequency", "alpha_cabin", "alpha_kundt"
-    ]
-
-    # Mappage dynamique des colonnes du fichier Excel à des noms standardisés
-    column_mapping = {
-        "Sample Number (STN)": "sample_number_stn",
-        "Trim level": "trim_level",
-        "Project number": "project_number",
-        "Material family": "material_family",
-        "Material supplier": "material_supplier",
-        "Detailed Description": "detailed_description",
-        "Surface Mass (g/m²)": "surface_mass_gm2",
-        "Thickness (mm)": "thickness_mm",
-        "Assembly Type": "assembly_type",
-        "Finished Good surface aera": "finished_good_surface_aera",
-        "Frequency": "frequency",
-        "Alpha cabin": "alpha_cabin",
-        "Alpha Kundt": "alpha_kundt"
-    }
-
-    # Normaliser les noms des colonnes
-    df = df.rename(columns=lambda x: x.strip())  # Supprimer les espaces superflus
-    df.columns = df.columns.str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
+    # Normalisation des noms de colonnes : nettoyage des espaces et caractères spéciaux
+    df.columns = df.columns.str.strip()  # Enlever les espaces autour des noms
+    df.columns = df.columns.str.replace(r'[^\w\s]', '', regex=True)  # Enlever les caractères spéciaux
     df.columns = df.columns.str.lower().str.replace(' ', '_')  # Convertir en minuscules et remplacer les espaces
 
-    # Appliquer le mappage des colonnes
-    df = df.rename(columns=column_mapping)
+    # Correspondance des colonnes par mots-clés dans le nom de la colonne
+    column_mapping = {
+        'sample_number_stn': 'sample_number_stn',
+        'trim_level': 'trim_level',
+        'project_number': 'project_number',
+        'material_family': 'material_family',
+        'material_supplier': 'material_supplier',
+        'detailed_description': 'detailed_description',
+        'surface_mass_gm2': 'surface_mass_gm2',  # Associe directement 'surface_mass_gm2'
+        'thickness_mm': 'thickness_mm',
+        'assembly_type': 'assembly_type',
+        'finished_good_surface_aera': 'finished_good_surface_aera',
+        'frequency': 'frequency',
+        'alpha_cabin': 'alpha_cabin',
+        'alpha_kundt': 'alpha_kundt'
+    }
+
+    # Dynamically map the columns based on matching keywords
+    for column in df.columns:
+        if 'surface' in column and 'mass' in column:
+            df = df.rename(columns={column: 'surface_mass_gm2'})
+        elif 'thickness' in column:
+            df = df.rename(columns={column: 'thickness_mm'})
+        elif 'alpha' in column and 'cabin' in column:
+            df = df.rename(columns={column: 'alpha_cabin'})
+        elif 'alpha' in column and 'kundt' in column:
+            df = df.rename(columns={column: 'alpha_kundt'})
+        elif 'sample' in column:
+            df = df.rename(columns={column: 'sample_number_stn'})
+        elif 'trim' in column:
+            df = df.rename(columns={column: 'trim_level'})
+        elif 'project' in column:
+            df = df.rename(columns={column: 'project_number'})
+        elif 'material' in column and 'family' in column:
+            df = df.rename(columns={column: 'material_family'})
+        elif 'material' in column and 'supplier' in column:
+            df = df.rename(columns={column: 'material_supplier'})
+        elif 'finished' in column and 'good' in column:
+            df = df.rename(columns={column: 'finished_good_surface_aera'})
+
+    # On vérifie si toutes les colonnes nécessaires sont présentes
+    columns_to_keep = [
+        'sample_number_stn', 'trim_level', 'project_number', 'material_family',
+        'material_supplier', 'detailed_description', 'surface_mass_gm2', 
+        'thickness_mm', 'assembly_type', 'finished_good_surface_aera', 
+        'frequency', 'alpha_cabin', 'alpha_kundt'
+    ]
+
+    # Supprimer les colonnes manquantes ou non nécessaires
+    df = df[columns_to_keep]
 
     return df
 
