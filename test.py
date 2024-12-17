@@ -114,11 +114,11 @@ if uploaded_file:
                 filtered_df = filtered_df[filtered_df["trim_level"] == trim_level]
             if supplier != "Tous":
                 filtered_df = filtered_df[filtered_df["material_supplier"] == supplier]
-            filtered_df = filtered_df[
+            filtered_df = filtered_df[ 
                 (filtered_df["surface_mass_gm2"] >= surface_mass[0]) & 
                 (filtered_df["surface_mass_gm2"] <= surface_mass[1])
             ]
-            filtered_df = filtered_df[
+            filtered_df = filtered_df[ 
                 (filtered_df["thickness_mm"] >= thickness[0]) & 
                 (filtered_df["thickness_mm"] <= thickness[1])
             ]
