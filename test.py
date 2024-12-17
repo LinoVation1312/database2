@@ -11,52 +11,41 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 @st.cache_data
 def load_data(file):
     """
-    Chargement des données depuis Excel avec gestion flexible de l'en-tête et suppression des colonnes inutiles.
+    Chargement des données depuis Excel et normalisation stricte des colonnes.
+    Cette version gère les variations dans le nom de la feuille et la ligne d'en-tête.
     """
-    # Charger les noms des feuilles
+    # Charger le fichier Excel
     xls = pd.ExcelFile(file, engine="openpyxl")
-    
-    # Chercher une feuille qui contient "DATA" (avec ou sans espace)
+
+    # Chercher le nom de la feuille 'DATA' ou 'DATA ' (avec ou sans espace)
     sheet_name = None
-    for name in xls.sheet_names:
-        if name.strip().upper() == "DATA":
-            sheet_name = name
+    for sheet in xls.sheet_names:
+        if 'data' in sheet.lower():  # Rechercher la feuille 'data' sans tenir compte de l'espace
+            sheet_name = sheet
             break
     
-    # Si la feuille "DATA" n'a pas été trouvée
     if sheet_name is None:
-        st.error("La feuille 'DATA' est introuvable dans le fichier Excel.")
-        return None
-    
-    # Charger les 5 premières lignes pour déterminer la structure de l'en-tête
-    preview_df = pd.read_excel(xls, sheet_name=sheet_name, nrows=5, engine="openpyxl")
-    st.write("Aperçu des 5 premières lignes du fichier :")
-    st.write(preview_df)
+        raise ValueError("La feuille 'DATA' n'a pas été trouvée dans le fichier.")
 
-    # Charger le fichier en sautant les lignes vides
-    df = pd.read_excel(xls, sheet_name=sheet_name, skip_blank_lines=True, header=1, engine="openpyxl")
-
-    # Affichage des colonnes pour vérification
-    st.write("Colonnes après chargement :")
-    st.write(df.columns.tolist())
-
-    # Nettoyage des colonnes inutiles (colonnes 'Unnamed')
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]  # Supprimer les colonnes "Unnamed"
+    # Essayer de lire avec en-têtes sur la première ligne (par défaut)
+    try:
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=0, engine="openpyxl")
+    except ValueError:
+        # Si cela échoue, tenter de lire en supposant que les données commencent à la 3ème ligne
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=2, engine="openpyxl")
 
     # Normaliser les noms de colonnes
     df.columns = (
         df.columns
         .str.strip()         # Retirer les espaces autour
         .str.lower()         # Convertir en minuscules
-        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux (parenthèses, accents, etc.)
+        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
-        .str.replace('gm²', 'gm2')  # Remplacer 'gm²' par 'gm2'
-        .str.replace('g/m²', 'gm2')  # Remplacer 'g/m²' par 'gm2'
     )
 
-    # Affichage des colonnes après nettoyage
-    st.write("Colonnes après nettoyage et normalisation :")
-    st.write(df.columns.tolist())
+    # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
+    if "sample_number_stn1" in df.columns:
+        df = df.drop(columns=["sample_number_stn1"])
 
     return df
 
@@ -163,8 +152,14 @@ if uploaded_file:
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
 
                 # Changer l'échelle pour afficher des valeurs entre 1 et 10000
-                ax.set_xticklabels([str(int(2 ** x)) for x in ax.get_xticks()], rotation=45)
+                def custom_ticks(x, pos):
+                    if x == 0:
+                        return "0"
+                    return f"{int(2**x):,}"
 
+                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
+
+                ax.grid(True)
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
