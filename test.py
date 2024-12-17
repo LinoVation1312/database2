@@ -32,7 +32,7 @@ def load_data(file):
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
     )
 
-    # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
+    # Suppression des doublons de colonnes
     if "sample_number_stn1" in df.columns:
         df = df.drop(columns=["sample_number_stn1"])
 
@@ -67,16 +67,19 @@ if uploaded_file:
             else:
                 df = df[columns_to_keep]
 
+                # Remplacer les valeurs NaN dans les colonnes pour l'étiquette
+                df = df.fillna({"assembly_type": "Ø", "trim_level": "Ø", "material_family": "Ø", surface_mass_column: "Ø"})
+
                 df[surface_mass_column] = pd.to_numeric(df[surface_mass_column], errors='coerce')
                 df["thickness_mm"] = pd.to_numeric(df["thickness_mm"], errors='coerce')
 
                 # Création d'une colonne enrichie pour affichage
                 df["sample_info"] = (
                     df["sample_number_stn"] + " | " +
-                    df["assembly_type"] + " | " +
-                    df[surface_mass_column].astype(str) + " g/m² | " +
-                    df["material_family"] + " | " +
-                    df["trim_level"]
+                    df["assembly_type"].astype(str) + " | " +
+                    df[surface_mass_column].fillna("Ø").astype(str) + " g/m² | " +
+                    df["material_family"].astype(str) + " | " +
+                    df["trim_level"].astype(str)
                 )
 
                 # Sélection des filtres
@@ -84,15 +87,15 @@ if uploaded_file:
                 supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
                 surface_mass = st.sidebar.slider(
                     "Sélectionnez une plage de Surface Mass (g/m²) :", 
-                    min_value=int(df[surface_mass_column].min()), 
-                    max_value=int(df[surface_mass_column].max()), 
-                    value=(int(df[surface_mass_column].min()), int(df[surface_mass_column].max()))
+                    min_value=int(df[surface_mass_column].min(skipna=True)), 
+                    max_value=int(df[surface_mass_column].max(skipna=True)), 
+                    value=(int(df[surface_mass_column].min(skipna=True)), int(df[surface_mass_column].max(skipna=True)))
                 )
                 thickness = st.sidebar.slider(
                     "Sélectionnez une plage de Thickness (mm) :", 
-                    min_value=float(df["thickness_mm"].min()), 
-                    max_value=float(df["thickness_mm"].max()), 
-                    value=(float(df["thickness_mm"].min()), float(df["thickness_mm"].max()))
+                    min_value=float(df["thickness_mm"].min(skipna=True)), 
+                    max_value=float(df["thickness_mm"].max(skipna=True)), 
+                    value=(float(df["thickness_mm"].min(skipna=True)), float(df["thickness_mm"].max(skipna=True)))
                 )
                 assembly_type = st.sidebar.selectbox("Sélectionnez un Assembly Type :", ["Tous"] + list(df["assembly_type"].unique()))
 
