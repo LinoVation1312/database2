@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
-import matplotlib.ticker as ticker
 import numpy as np
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
@@ -123,6 +122,12 @@ if uploaded_file:
                     # Choix du type d'absorption
                     absorption_type = st.sidebar.radio("Type d'absorption :", ["alpha_cabin", "alpha_kundt"])
 
+                    # Définir les fréquences en fonction du type d'absorption
+                    if absorption_type == "alpha_cabin":
+                        freq_ticks = [315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
+                    else:
+                        freq_ticks = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300]
+
                     # Affichage du graphique pour chaque échantillon sélectionné
                     st.subheader(f"Comparaison des courbes d'absorption pour {', '.join(sample_numbers)} - {absorption_type}")
                     
@@ -137,7 +142,6 @@ if uploaded_file:
                         )
 
                     # Définir l'axe des fréquences de manière linéaire avec une échelle personnalisée
-                    freq_ticks = [80, 160, 315, 630, 1250, 2500, 5000, 10000]
                     ax.set_xticks(freq_ticks)  # Définir explicitement les ticks
                     ax.set_xlim(min(freq_ticks), max(freq_ticks))  # Définir les limites de l'axe
 
