@@ -28,6 +28,11 @@ def load_data(file):
         st.error("La feuille 'DATA' est introuvable dans le fichier Excel.")
         return None
     
+    # Charger les 5 premières lignes pour déterminer la structure de l'en-tête
+    preview_df = pd.read_excel(xls, sheet_name=sheet_name, nrows=5, engine="openpyxl")
+    st.write("Aperçu des 5 premières lignes du fichier :")
+    st.write(preview_df)
+
     # Essayer de charger avec un en-tête à la première ou à la troisième ligne
     try:
         df = pd.read_excel(xls, sheet_name=sheet_name, header=0)  # Premier essai : en-tête sur la première ligne
@@ -162,14 +167,8 @@ if uploaded_file:
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
 
                 # Changer l'échelle pour afficher des valeurs entre 1 et 10000
-                def custom_ticks(x, pos):
-                    if x == 0:
-                        return "0"
-                    return f"{int(2**x):,}"
+                ax.set_xticklabels([str(int(2 ** x)) for x in ax.get_xticks()], rotation=45)
 
-                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
-
-                ax.grid(True)
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
