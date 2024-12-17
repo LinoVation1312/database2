@@ -128,31 +128,28 @@ if uploaded_file:
 
                     st.subheader(f"Comparaison des courbes d'absorption pour {absorption_type}")
                     
-                    fig, ax = plt.subplots(figsize=(12, 6))  # Augmentation de la largeur du graphique
                     
+                    
+                    # Ajustement de la taille du graphique pour plus de lisibilité
+                    fig, ax = plt.subplots(figsize=(12, 8))  # Augmentation de la taille du graphique
+                    
+                    # Tracer les courbes
                     for sample in sample_numbers:
                         data_sample = filtered_data[filtered_data["sample_info"] == sample]
                         ax.plot(data_sample["frequency"], data_sample[absorption_type], 
                                 marker='o', linestyle='-', label=sample)
                     
-                    # Configuration améliorée des axes
+                    # Paramètres de l'axe X pour une meilleure lisibilité
                     ax.set_xticks(freq_ticks)
                     ax.set_xlim(min(freq_ticks), max(freq_ticks))
+                    ax.set_xticklabels(freq_ticks, rotation=45, ha="right")  # Rotation des étiquettes
                     
-                    # Rotation des étiquettes pour éviter le chevauchement
-                    ax.set_xticklabels(freq_ticks, rotation=45, ha="right", fontsize=10)
-                    
-                    # Titre et étiquettes
-                    ax.set_title(f"Absorption : {absorption_type}", fontsize=14)
-                    ax.set_xlabel("Fréquence (Hz)", fontsize=12)
-                    ax.set_ylabel(absorption_type, fontsize=12)
-                    
-                    # Ajout de marges pour éviter les débordements
-                    plt.subplots_adjust(bottom=0.2, left=0.1, right=0.95, top=0.9)
-                    
-                    # Légende améliorée
-                    ax.legend(title="Échantillons", loc='upper left', bbox_to_anchor=(1, 1), fontsize=9)
+                    # Titres et légendes
+                    ax.set_title(f"Absorption : {absorption_type}")
+                    ax.set_xlabel("Fréquence (Hz)")
+                    ax.set_ylabel(absorption_type)
+                    ax.legend(title="Échantillons", loc='upper left', bbox_to_anchor=(1, 1))  # Déplacer la légende à l'extérieur
                     ax.grid(True, linestyle='--', alpha=0.7)
                     
-                    # Affichage
-                    st.pyplot(fig)
+                    # Afficher le graphique dans Streamlit avec largeur adaptative
+                    st.pyplot(fig, use_container_width=True)
