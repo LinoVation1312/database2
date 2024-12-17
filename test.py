@@ -33,12 +33,8 @@ def load_data(file):
     st.write("Aperçu des 5 premières lignes du fichier :")
     st.write(preview_df)
 
-    # Essayer de charger avec un en-tête à la première ou à la troisième ligne
-    try:
-        df = pd.read_excel(xls, sheet_name=sheet_name, header=0)  # Premier essai : en-tête sur la première ligne
-    except Exception as e:
-        st.warning(f"Erreur avec header=0 : {e}. Tentons header=2.")
-        df = pd.read_excel(xls, sheet_name=sheet_name, header=2)  # Second essai : en-tête sur la troisième ligne
+    # Charger le fichier en sautant les lignes vides
+    df = pd.read_excel(xls, sheet_name=sheet_name, skip_blank_lines=True, header=1, engine="openpyxl")
 
     # Affichage des colonnes pour vérification
     st.write("Colonnes après chargement :")
