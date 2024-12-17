@@ -135,30 +135,19 @@ if uploaded_file:
                             data_sample[absorption_type], 
                             marker='o', linestyle='-', label=f"{sample}"
                         )
-                    
-                    # Mettre l'échelle logarithmique pour l'axe des fréquences
-                    ax.set_xscale('log', base=2)
 
-                    # Configurer la grille avec échelle logarithmique
-                    ax.grid(True, which="both", axis="x", linestyle='--', color='gray', alpha=0.7)
+                    # Définir l'axe des fréquences de manière linéaire avec une échelle personnalisée
+                    freq_ticks = [80, 160, 315, 630, 1250, 2500, 5000, 10000]
+                    ax.set_xticks(freq_ticks)  # Définir explicitement les ticks
+                    ax.set_xlim(min(freq_ticks), max(freq_ticks))  # Définir les limites de l'axe
+
+                    # Ajouter les labels pour les fréquences
                     ax.set_title(f"Absorption : {absorption_type}")
                     ax.set_xlabel("Fréquence (Hz)")
                     ax.set_ylabel(absorption_type)
                     ax.legend(title="Échantillons")
+                    ax.grid(True, which='both', axis='x', linestyle='--', color='gray', alpha=0.7)
 
-                    # Ajout des ticks log-spacés pour l'axe des fréquences
-                    ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
-                    ax.xaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=20))
-
-                    # Changer l'échelle pour afficher des valeurs entre 1 et 10000
-                    def custom_ticks(x, pos):
-                        if x == 0:
-                            return "0"
-                        return f"{int(2**x):,}"
-
-                    ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
-
-                    ax.grid(True)
                     st.pyplot(fig)
 
                     # Générer un lien pour télécharger le graphique en PDF
