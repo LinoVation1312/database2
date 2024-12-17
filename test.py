@@ -43,6 +43,17 @@ def load_data(file):
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
     )
 
+    # Renommer les colonnes pour assurer la compatibilité
+    column_rename_map = {
+        'surface_mass_gm2': 'surface_mass_gm2',
+        'surface_mass_(g/m²)': 'surface_mass_gm2',  # Remplace la version avec des parenthèses
+        'surface_mass_g/m²': 'surface_mass_gm2',   # Remplace les variantes
+        'surface_mass': 'surface_mass_gm2',          # Cas général si le nom est raccourci
+    }
+
+    # Appliquer le renommage si des colonnes correspondent aux variations attendues
+    df = df.rename(columns=column_rename_map)
+
     # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
     if "sample_number_stn1" in df.columns:
         df = df.drop(columns=["sample_number_stn1"])
@@ -55,7 +66,7 @@ if uploaded_file:
     # Chargement et nettoyage des données
     df = load_data(uploaded_file)
 
-    # Vérification de la présence de la colonne "surface_mass_gm2" (notez l'absence du "²")
+    # Vérification de la présence de la colonne 'surface_mass_gm2'
     if "surface_mass_gm2" not in df.columns:
         st.error("La colonne 'surface_mass_gm2' est manquante dans les données.")
     else:
