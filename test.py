@@ -27,12 +27,17 @@ def load_data(file):
     if sheet_name is None:
         raise ValueError("La feuille 'DATA' n'a pas été trouvée dans le fichier.")
 
-    # Essayer de lire avec en-têtes sur la première ligne (par défaut)
-    try:
-        df = pd.read_excel(xls, sheet_name=sheet_name, header=0, engine="openpyxl")
-    except ValueError:
-        # Si cela échoue, tenter de lire en supposant que les données commencent à la 3ème ligne
-        df = pd.read_excel(xls, sheet_name=sheet_name, header=2, engine="openpyxl")
+    # Vérification des deux premières lignes pour voir si elles sont vides
+    df_check = pd.read_excel(xls, sheet_name=sheet_name, header=None, engine="openpyxl", nrows=2)
+    
+    # Si les deux premières lignes sont vides, commencer à partir de la troisième ligne
+    if df_check.isnull().all().all():
+        header_row = 2
+    else:
+        header_row = 0
+
+    # Charger les données en tenant compte de la ligne d'en-tête correcte
+    df = pd.read_excel(xls, sheet_name=sheet_name, header=header_row, engine="openpyxl")
 
     # Liste des étiquettes de colonnes attendues
     expected_columns = [
