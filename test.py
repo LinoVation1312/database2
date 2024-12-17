@@ -76,6 +76,13 @@ if uploaded_file:
                 df[surface_mass_column] = pd.to_numeric(df[surface_mass_column], errors='coerce')
                 df["thickness_mm"] = pd.to_numeric(df["thickness_mm"], errors='coerce')
 
+                # Création d'une colonne enrichie pour affichage
+                df["sample_info"] = (
+                    df["sample_number_stn"] + " | " +
+                    df[surface_mass_column].astype(str) + " g/m² | " +
+                    df["material_family"]
+                )
+
                 # Sélection de critères de filtre
                 trim_level = st.sidebar.selectbox("Sélectionnez un Trim Level :", ["Tous"] + list(df["trim_level"].unique()))
                 supplier = st.sidebar.selectbox("Sélectionnez un Supplier :", ["Tous"] + list(df["material_supplier"].unique()))
@@ -111,60 +118,38 @@ if uploaded_file:
                 if assembly_type != "Tous":
                     filtered_df = filtered_df[filtered_df["assembly_type"] == assembly_type]
 
-                # Sélection de plusieurs échantillons parmi les échantillons filtrés
-                sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_number_stn"].unique())
+                # Sélection enrichie des échantillons
+                sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_info"].unique())
 
                 # Si des échantillons sont sélectionnés
                 if sample_numbers:
                     # Filtrage des données pour les échantillons sélectionnés
-                    filtered_data = filtered_df[filtered_df["sample_number_stn"].isin(sample_numbers)]
+                    filtered_data = filtered_df[filtered_df["sample_info"].isin(sample_numbers)]
 
                     # Choix du type d'absorption
                     absorption_type = st.sidebar.radio("Type d'absorption :", ["alpha_cabin", "alpha_kundt"])
 
-                    # Définir les fréquences en fonction du type d'absorption
-                    if absorption_type == "alpha_cabin":
-                        freq_ticks = [315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
-                    else:
-                        freq_ticks = [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300]
+                    # Fréquences spécifiques
+                    freq_ticks = {
+                        "alpha_cabin": [315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000],
+                        "alpha_kundt": [200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300]
+                    }[absorption_type]
 
-                    # Affichage du graphique pour chaque échantillon sélectionné
-                    st.subheader(f"Comparaison des courbes d'absorption pour {', '.join(sample_numbers)} - {absorption_type}")
+                    st.subheader(f"Comparaison des courbes d'absorption pour {absorption_type}")
                     
                     fig, ax = plt.subplots(figsize=(10, 6))
                     
                     for sample in sample_numbers:
-                        data_sample = filtered_data[filtered_data["sample_number_stn"] == sample]
-                        ax.plot(
-                            data_sample["frequency"], 
-                            data_sample[absorption_type], 
-                            marker='o', linestyle='-', label=f"{sample}"
-                        )
+                        data_sample = filtered_data[filtered_data["sample_info"] == sample]
+                        ax.plot(data_sample["frequency"], data_sample[absorption_type], 
+                                marker='o', linestyle='-', label=sample)
 
-                    # Définir l'axe des fréquences de manière linéaire avec une échelle personnalisée
-                    ax.set_xticks(freq_ticks)  # Définir explicitement les ticks
-                    ax.set_xlim(min(freq_ticks), max(freq_ticks))  # Définir les limites de l'axe
-
-                    # Ajouter les labels pour les fréquences
+                    ax.set_xticks(freq_ticks)
+                    ax.set_xlim(min(freq_ticks), max(freq_ticks))
                     ax.set_title(f"Absorption : {absorption_type}")
                     ax.set_xlabel("Fréquence (Hz)")
                     ax.set_ylabel(absorption_type)
                     ax.legend(title="Échantillons")
-                    ax.grid(True, which='both', axis='x', linestyle='--', color='gray', alpha=0.7)
+                    ax.grid(True, linestyle='--')
 
                     st.pyplot(fig)
-
-                    # Générer un lien pour télécharger le graphique en PDF
-                    pdf_bytes = io.BytesIO()
-                    with PdfPages(pdf_bytes) as pdf:
-                        pdf.savefig(fig)
-                    pdf_bytes.seek(0)
-
-                    st.download_button(
-                        label="Télécharger le graphique en PDF",
-                        data=pdf_bytes,
-                        file_name="courbes_absorption.pdf",
-                        mime="application/pdf"
-                    )
-                else:
-                    st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
