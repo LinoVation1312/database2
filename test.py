@@ -1,10 +1,10 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
 import matplotlib.ticker as ticker
+import numpy as np
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
@@ -13,9 +13,25 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 def load_data(file):
     """
     Chargement des données depuis Excel et normalisation stricte des colonnes.
+    Recherche de la feuille "DATA" en ignorant les espaces.
     """
+    # Charger les noms des feuilles
+    xls = pd.ExcelFile(file, engine="openpyxl")
+    
+    # Chercher une feuille qui contient "DATA" (avec ou sans espace)
+    sheet_name = None
+    for name in xls.sheet_names:
+        if name.strip().upper() == "DATA":
+            sheet_name = name
+            break
+    
+    # Si la feuille "DATA" n'a pas été trouvée
+    if sheet_name is None:
+        st.error("La feuille 'DATA' est introuvable dans le fichier Excel.")
+        return None
+    
     # Charger la feuille DATA
-    df = pd.read_excel(file, sheet_name="DATA", engine="openpyxl")
+    df = pd.read_excel(xls, sheet_name=sheet_name)
     
     # Normaliser les noms de colonnes
     df.columns = (
@@ -133,11 +149,16 @@ if uploaded_file:
 
                 # Ajout des ticks log-spacés pour l'axe des fréquences
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
-                ax.xaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=20))
-                ax.set_xscale('log', base=2)
+
+                # Changer l'échelle pour afficher des valeurs entre 1 et 10000
+                def custom_ticks(x, pos):
+                    if x == 0:
+                        return "0"
+                    return f"{int(2**x):,}"
+
+                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
+
                 ax.grid(True)
-
-
                 st.pyplot(fig)
 
                 # Générer un lien pour télécharger le graphique en PDF
@@ -154,4 +175,3 @@ if uploaded_file:
                 )
             else:
                 st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
-                
