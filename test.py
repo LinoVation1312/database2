@@ -11,7 +11,8 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 @st.cache_data
 def load_data(file):
     """
-    Chargement des données depuis Excel et correspondance des colonnes par mots-clés dans les noms de colonnes.
+    Chargement des données depuis Excel et normalisation stricte des colonnes.
+    Cette version gère les variations dans le nom de la feuille et la ligne d'en-tête.
     """
     # Charger le fichier Excel
     xls = pd.ExcelFile(file, engine="openpyxl")
@@ -26,73 +27,36 @@ def load_data(file):
     if sheet_name is None:
         raise ValueError("La feuille 'DATA' n'a pas été trouvée dans le fichier.")
 
-    # Vérification des deux premières lignes pour voir si elles sont vides
-    df_check = pd.read_excel(xls, sheet_name=sheet_name, header=None, engine="openpyxl", nrows=2)
-    
-    # Si les deux premières lignes sont vides, commencer à partir de la troisième ligne
-    if df_check.isnull().all().all():
-        header_row = 2
-    else:
-        header_row = 0
+    # Essayer de lire avec en-têtes sur la première ligne (par défaut)
+    try:
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=0, engine="openpyxl")
+    except ValueError:
+        # Si cela échoue, tenter de lire en supposant que les données commencent à la 3ème ligne
+        df = pd.read_excel(xls, sheet_name=sheet_name, header=2, engine="openpyxl")
 
-    # Charger les données en tenant compte de la ligne d'en-tête correcte
-    df = pd.read_excel(xls, sheet_name=sheet_name, header=header_row, engine="openpyxl")
+    # Normaliser les noms de colonnes
+    df.columns = (
+        df.columns
+        .str.strip()         # Retirer les espaces autour
+        .str.lower()         # Convertir en minuscules
+        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
+        .str.replace(' ', '_')  # Remplacer les espaces par des underscores
+    )
 
-    # Normalisation des noms de colonnes : nettoyage des espaces et caractères spéciaux
-    df.columns = df.columns.str.strip()  # Enlever les espaces autour des noms
-    df.columns = df.columns.str.replace(r'[^\w\s]', '', regex=True)  # Enlever les caractères spéciaux
-    df.columns = df.columns.str.lower().str.replace(' ', '_')  # Convertir en minuscules et remplacer les espaces
-
-    # Correspondance des colonnes par mots-clés dans le nom de la colonne
-    column_mapping = {
-        'sample_number_stn': 'sample_number_stn',
-        'trim_level': 'trim_level',
-        'project_number': 'project_number',
-        'material_family': 'material_family',
-        'material_supplier': 'material_supplier',
-        'detailed_description': 'detailed_description',
-        'surface_mass_gm2': 'surface_mass_gm2',  # Associe directement 'surface_mass_gm2'
-        'thickness_mm': 'thickness_mm',
-        'assembly_type': 'assembly_type',
-        'finished_good_surface_aera': 'finished_good_surface_aera',
-        'frequency': 'frequency',
-        'alpha_cabin': 'alpha_cabin',
-        'alpha_kundt': 'alpha_kundt'
+    # Renommer les colonnes pour assurer la compatibilité
+    column_rename_map = {
+        'surface_mass_(g/m²)': 'surface_mass_gm2',  # Remplacer la version avec des parenthèses
+        'surface_mass_g/m²': 'surface_mass_gm2',   # Remplacer les variantes
+        'surface_mass': 'surface_mass_gm2',         # Cas général si le nom est raccourci
+        # Ajouter d'autres colonnes à renommer si nécessaire
     }
 
-    # Dynamically map the columns based on matching keywords
-    for column in df.columns:
-        if 'surface' in column and 'mass' in column:
-            df = df.rename(columns={column: 'surface_mass_gm2'})
-        elif 'thickness' in column:
-            df = df.rename(columns={column: 'thickness_mm'})
-        elif 'alpha' in column and 'cabin' in column:
-            df = df.rename(columns={column: 'alpha_cabin'})
-        elif 'alpha' in column and 'kundt' in column:
-            df = df.rename(columns={column: 'alpha_kundt'})
-        elif 'sample' in column:
-            df = df.rename(columns={column: 'sample_number_stn'})
-        elif 'trim' in column:
-            df = df.rename(columns={column: 'trim_level'})
-        elif 'project' in column:
-            df = df.rename(columns={column: 'project_number'})
-        elif 'material' in column and 'family' in column:
-            df = df.rename(columns={column: 'material_family'})
-        elif 'material' in column and 'supplier' in column:
-            df = df.rename(columns={column: 'material_supplier'})
-        elif 'finished' in column and 'good' in column:
-            df = df.rename(columns={column: 'finished_good_surface_aera'})
+    # Appliquer le renommage si des colonnes correspondent aux variations attendues
+    df = df.rename(columns=column_rename_map)
 
-    # On vérifie si toutes les colonnes nécessaires sont présentes
-    columns_to_keep = [
-        'sample_number_stn', 'trim_level', 'project_number', 'material_family',
-        'material_supplier', 'detailed_description', 'surface_mass_gm2', 
-        'thickness_mm', 'assembly_type', 'finished_good_surface_aera', 
-        'frequency', 'alpha_cabin', 'alpha_kundt'
-    ]
-
-    # Supprimer les colonnes manquantes ou non nécessaires
-    df = df[columns_to_keep]
+    # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
+    if "sample_number_stn1" in df.columns:
+        df = df.drop(columns=["sample_number_stn1"])
 
     return df
 
@@ -150,19 +114,26 @@ if uploaded_file:
                 filtered_df = filtered_df[filtered_df["trim_level"] == trim_level]
             if supplier != "Tous":
                 filtered_df = filtered_df[filtered_df["material_supplier"] == supplier]
-            filtered_df = filtered_df[ 
+            filtered_df = filtered_df[
                 (filtered_df["surface_mass_gm2"] >= surface_mass[0]) & 
                 (filtered_df["surface_mass_gm2"] <= surface_mass[1])
             ]
-            filtered_df = filtered_df[ 
+            filtered_df = filtered_df[
                 (filtered_df["thickness_mm"] >= thickness[0]) & 
                 (filtered_df["thickness_mm"] <= thickness[1])
             ]
             if assembly_type != "Tous":
                 filtered_df = filtered_df[filtered_df["assembly_type"] == assembly_type]
 
-            # Sélection de plusieurs échantillons parmi les échantillons filtrés
-            sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_number_stn"].unique())
+            # Afficher les colonnes pour le débogage (facultatif)
+            st.write("Colonnes du DataFrame après filtrage :", filtered_df.columns)
+
+            # Vérification de l'existence de la colonne "sample_number_stn"
+            if "sample_number_stn" in filtered_df.columns:
+                # Sélection de plusieurs échantillons parmi les échantillons filtrés
+                sample_numbers = st.sidebar.multiselect("Sélectionnez plusieurs Sample Numbers :", filtered_df["sample_number_stn"].unique())
+            else:
+                st.error("La colonne 'sample_number_stn' est manquante dans les données.")
 
             # Si des échantillons sont sélectionnés
             if sample_numbers:
@@ -221,5 +192,3 @@ if uploaded_file:
                     file_name="courbes_absorption.pdf",
                     mime="application/pdf"
                 )
-            else:
-                st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
