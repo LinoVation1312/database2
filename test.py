@@ -142,13 +142,13 @@ if uploaded_file:
                     # Paramètres de l'axe X pour une meilleure lisibilité
                     ax.set_xticks(freq_ticks)
                     ax.set_xlim(min(freq_ticks), max(freq_ticks))
-                    ax.set_xticklabels(freq_ticks, rotation=45, ha="right")  # Rotation des étiquettes
+                    ax.set_xticklabels(freq_ticks, rotation=55, ha="right")  # Rotation des étiquettes
                     
                     # Titres et légendes
                     ax.set_title(f"Absorption : {absorption_type}")
                     ax.set_xlabel("Fréquence (Hz)")
                     ax.set_ylabel(absorption_type)
-                    ax.legend(title="Échantillons", loc='upper left', bbox_to_anchor=(1, 1))  # Déplacer la légende à l'extérieur
+                    ax.legend(title="Échantillons")  # Déplacer la légende à l'extérieur
                     ax.grid(True, linestyle='--', alpha=0.7)
                     
                     # Afficher le graphique dans Streamlit avec largeur adaptative
