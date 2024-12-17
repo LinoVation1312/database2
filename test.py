@@ -148,6 +148,7 @@ if uploaded_file:
 
                     # Ajout des ticks log-spacés pour l'axe des fréquences
                     ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
+                    ax.xaxis.set_minor_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=20))
 
                     # Changer l'échelle pour afficher des valeurs entre 1 et 10000
                     def custom_ticks(x, pos):
