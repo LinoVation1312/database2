@@ -149,7 +149,7 @@ if uploaded_file:
                     ax.set_title(f"Absorption : {absorption_type}")
                     ax.set_xlabel("Fréquence (Hz)")
                     ax.set_ylabel(absorption_type)
-                    ax.legend(title="Échantillons", loc='upper left', bbox_to_anchor=(1, 1))  # Déplacer la légende
+                    ax.legend(title="Échantillons")  # Déplacer la légende
                     ax.grid(True, which="both", linestyle='--', alpha=0.7)
                     
                     # Afficher le graphique dans Streamlit avec largeur adaptative
