@@ -33,14 +33,23 @@ You can install the required dependencies using the following command:
 **Upload an Excel file containing the acoustic absorption data. The file should include a "DATA" sheet with the following (or similar) columns:**
 
 sample_number_stn: Sample ID
+
 trim_level: Trim level
+
 material_family: Material family
+
 material_supplier: Material supplier
+
 surface_mass_gm2: Surface mass (g/m²)
+
 thickness_mm: Thickness (mm)
+
 assembly_type: Assembly type
+
 frequency: Frequency (Hz)
+
 alpha_cabin or alpha_kundt: Acoustic absorption coefficient
+
 
 
 ## Contributing
