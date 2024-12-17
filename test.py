@@ -6,11 +6,11 @@ import io
 import numpy as np
 # Définir la configuration de la page
 st.set_page_config(
-    page_title="Visualisation Optimisée des Courbes d'Absorption Acoustique",  # Titre de l'onglet
-    page_icon="https://tse2.mm.bing.net/th?id=OIP.qWEFIexhB9GCbEpeeJEoRAHaHZ&pid=Api",  # URL de l'icône
+    page_title="DATABASE",  # Titre de l'onglet
+    page_icon="https://shoplineimg.com/5ba2f18f88891600051d9b67/5c440c8d467a760ff5239042/800x.webp?source_format=png",  # URL de l'icône
     layout="wide"  # Choix de mise en page (par défaut "centered" ou "wide")
 )
-st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
+st.title("Visualisation des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
 
 @st.cache_data
