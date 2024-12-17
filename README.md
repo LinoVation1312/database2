@@ -55,9 +55,13 @@ alpha_cabin or alpha_kundt: Acoustic absorption coefficient
 ## Contributing
 
 Fork this project.
+
 Create a branch for your changes (git checkout -b feature/feature-name).
+
 Make your changes and commit them (git commit -am 'Added feature X').
+
 Push to the branch (git push origin feature/feature-name).
+
 Open a pull request to propose your changes.
 
 
