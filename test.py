@@ -43,9 +43,9 @@ def load_data(file):
         .str.replace('g/m²', 'gm2')  # Remplacer 'g/m²' par 'gm2'
     )
 
-    # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
-    if "sample_number_stn1" in df.columns:
-        df = df.drop(columns=["sample_number_stn1"])
+    # Affichage des colonnes après normalisation pour inspection
+    st.write("Colonnes après nettoyage et normalisation :")
+    st.write(df.columns.tolist())
 
     return df
 
