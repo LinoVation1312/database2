@@ -128,19 +128,29 @@ if uploaded_file:
 
                     st.subheader(f"Comparaison des courbes d'absorption pour {absorption_type}")
                     
-                    fig, ax = plt.subplots(figsize=(10, 6))
+                    # Ajustement de la taille du graphique pour plus de lisibilité
+                    fig, ax = plt.subplots(figsize=(12, 8))  # Taille élargie
                     
+                    # Tracer les courbes
                     for sample in sample_numbers:
                         data_sample = filtered_data[filtered_data["sample_info"] == sample]
-                        ax.plot(data_sample["frequency"], data_sample[absorption_type], 
+                        ax.plot(data_sample["frequency"], data_sample[absorption_type],
                                 marker='o', linestyle='-', label=sample)
-
-                    ax.set_xticks(freq_ticks)
-                    ax.set_xlim(min(freq_ticks), max(freq_ticks))
+                    
+                    # Définir les fréquences spécifiques pour les étiquettes et l'axe X
+                    ax.set_xscale('log')  # Échelle logarithmique pour l'axe X
+                    ax.set_xticks(freq_ticks)  # Points spécifiques pour les étiquettes
+                    ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())  # Forcer un format lisible
+                    
+                    # Rotation et alignement des étiquettes
+                    ax.set_xticklabels(freq_ticks, rotation=25, ha="right")
+                    
+                    # Titres et légendes
                     ax.set_title(f"Absorption : {absorption_type}")
                     ax.set_xlabel("Fréquence (Hz)")
                     ax.set_ylabel(absorption_type)
-                    ax.legend(title="Échantillons")
-                    ax.grid(True, linestyle='--')
-
-                    st.pyplot(fig)
+                    ax.legend(title="Échantillons")  # Déplacer la légende
+                    ax.grid(True, which="both", linestyle='--', alpha=0.7)
+                    
+                    # Afficher le graphique dans Streamlit avec largeur adaptative
+                    st.pyplot(fig, use_container_width=True)
