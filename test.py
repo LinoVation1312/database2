@@ -12,7 +12,7 @@ st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'ab
 def load_data(file):
     """
     Chargement des données depuis Excel et normalisation stricte des colonnes.
-    Cette version gère les variations dans le nom de la feuille et la ligne d'en-tête.
+    Cette version gère les variations dans le nom de la feuille, la ligne d'en-tête et fait correspondre les colonnes par position.
     """
     # Charger le fichier Excel
     xls = pd.ExcelFile(file, engine="openpyxl")
@@ -34,6 +34,22 @@ def load_data(file):
         # Si cela échoue, tenter de lire en supposant que les données commencent à la 3ème ligne
         df = pd.read_excel(xls, sheet_name=sheet_name, header=2, engine="openpyxl")
 
+    # Liste des étiquettes de colonnes attendues
+    expected_columns = [
+        "sample_number_stn", "trim_level", "project_number", "material_family",
+        "material_supplier", "detailed_description", "surface_mass_gm2", 
+        "thickness_mm", "assembly_type", "finished_good_surface_aera", 
+        "frequency", "alpha_cabin", "alpha_kundt"
+    ]
+
+    # Associer les colonnes par position aux étiquettes attendues
+    if len(df.columns) >= len(expected_columns):
+        column_mapping = dict(zip(df.columns[:len(expected_columns)], expected_columns))
+        df = df.rename(columns=column_mapping)
+    else:
+        raise ValueError(f"Le nombre de colonnes dans le fichier ne correspond pas aux attentes. "
+                         f"Colonne trouvées : {len(df.columns)}, Colonnes attendues : {len(expected_columns)}")
+
     # Normaliser les noms de colonnes
     df.columns = (
         df.columns
@@ -42,21 +58,6 @@ def load_data(file):
         .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
     )
-
-    # Renommer les colonnes pour assurer la compatibilité
-    column_rename_map = {
-        'surface_mass_gm2': 'surface_mass_gm2',
-        'surface_mass_(g/m²)': 'surface_mass_gm2',  # Remplace la version avec des parenthèses
-        'surface_mass_g/m²': 'surface_mass_gm2',   # Remplace les variantes
-        'surface_mass': 'surface_mass_gm2',          # Cas général si le nom est raccourci
-    }
-
-    # Appliquer le renommage si des colonnes correspondent aux variations attendues
-    df = df.rename(columns=column_rename_map)
-
-    # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
-    if "sample_number_stn1" in df.columns:
-        df = df.drop(columns=["sample_number_stn1"])
 
     return df
 
@@ -162,28 +163,5 @@ if uploaded_file:
                 # Ajout des ticks log-spacés pour l'axe des fréquences
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
 
-                # Changer l'échelle pour afficher des valeurs entre 1 et 10000
-                def custom_ticks(x, pos):
-                    if x == 0:
-                        return "0"
-                    return f"{int(2**x):,}"
-
-                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
-
-                ax.grid(True)
+                # Affichage du graphique
                 st.pyplot(fig)
-
-                # Générer un lien pour télécharger le graphique en PDF
-                pdf_bytes = io.BytesIO()
-                with PdfPages(pdf_bytes) as pdf:
-                    pdf.savefig(fig)
-                pdf_bytes.seek(0)
-
-                st.download_button(
-                    label="Télécharger le graphique en PDF",
-                    data=pdf_bytes,
-                    file_name="courbes_absorption.pdf",
-                    mime="application/pdf"
-                )
-            else:
-                st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
