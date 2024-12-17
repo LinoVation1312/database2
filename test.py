@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
 import matplotlib.ticker as ticker
-import numpy as np
 
 st.title("Visualisation Optimisée des Courbes d'Absorption Acoustique")
 st.write("Sélectionnez plusieurs échantillons pour comparer leurs courbes d'absorption.")
@@ -38,9 +37,10 @@ def load_data(file):
         df.columns
         .str.strip()         # Retirer les espaces autour
         .str.lower()         # Convertir en minuscules
-        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
+        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux (parenthèses, accents, etc.)
         .str.replace(' ', '_')  # Remplacer les espaces par des underscores
         .str.replace('gm²', 'gm2')  # Remplacer 'gm²' par 'gm2'
+        .str.replace('g/m²', 'gm2')  # Remplacer 'g/m²' par 'gm2'
     )
 
     # Suppression des doublons de colonnes (par exemple, sample_number_stn1)
