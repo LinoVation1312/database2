@@ -42,22 +42,30 @@ def load_data(file):
         "frequency", "alpha_cabin", "alpha_kundt"
     ]
 
-    # Associer les colonnes par position aux étiquettes attendues
-    if len(df.columns) >= len(expected_columns):
-        column_mapping = dict(zip(df.columns[:len(expected_columns)], expected_columns))
-        df = df.rename(columns=column_mapping)
-    else:
-        raise ValueError(f"Le nombre de colonnes dans le fichier ne correspond pas aux attentes. "
-                         f"Colonne trouvées : {len(df.columns)}, Colonnes attendues : {len(expected_columns)}")
+    # Mappage dynamique des colonnes du fichier Excel à des noms standardisés
+    column_mapping = {
+        "Sample Number (STN)": "sample_number_stn",
+        "Trim level": "trim_level",
+        "Project number": "project_number",
+        "Material family": "material_family",
+        "Material supplier": "material_supplier",
+        "Detailed Description": "detailed_description",
+        "Surface Mass (g/m²)": "surface_mass_gm2",
+        "Thickness (mm)": "thickness_mm",
+        "Assembly Type": "assembly_type",
+        "Finished Good surface aera": "finished_good_surface_aera",
+        "Frequency": "frequency",
+        "Alpha cabin": "alpha_cabin",
+        "Alpha Kundt": "alpha_kundt"
+    }
 
-    # Normaliser les noms de colonnes
-    df.columns = (
-        df.columns
-        .str.strip()         # Retirer les espaces autour
-        .str.lower()         # Convertir en minuscules
-        .str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
-        .str.replace(' ', '_')  # Remplacer les espaces par des underscores
-    )
+    # Normaliser les noms des colonnes
+    df = df.rename(columns=lambda x: x.strip())  # Supprimer les espaces superflus
+    df.columns = df.columns.str.replace(r'[^\w\s]', '', regex=True)  # Retirer les caractères spéciaux
+    df.columns = df.columns.str.lower().str.replace(' ', '_')  # Convertir en minuscules et remplacer les espaces
+
+    # Appliquer le mappage des colonnes
+    df = df.rename(columns=column_mapping)
 
     return df
 
@@ -163,5 +171,28 @@ if uploaded_file:
                 # Ajout des ticks log-spacés pour l'axe des fréquences
                 ax.xaxis.set_major_locator(ticker.LogLocator(base=2.0, subs='auto', numticks=10))
 
-                # Affichage du graphique
+                # Changer l'échelle pour afficher des valeurs entre 1 et 10000
+                def custom_ticks(x, pos):
+                    if x == 0:
+                        return "0"
+                    return f"{int(2**x):,}"
+
+                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_ticks))
+
+                ax.grid(True)
                 st.pyplot(fig)
+
+                # Générer un lien pour télécharger le graphique en PDF
+                pdf_bytes = io.BytesIO()
+                with PdfPages(pdf_bytes) as pdf:
+                    pdf.savefig(fig)
+                pdf_bytes.seek(0)
+
+                st.download_button(
+                    label="Télécharger le graphique en PDF",
+                    data=pdf_bytes,
+                    file_name="courbes_absorption.pdf",
+                    mime="application/pdf"
+                )
+            else:
+                st.warning("Veuillez sélectionner au moins un échantillon pour afficher les courbes.")
