@@ -20,16 +20,16 @@ This project allows you to load, filter, and visualize acoustic absorption curve
   - `numpy`
 
 You can install the required dependencies using the following command:
-```
-`pip install streamlit pandas matplotlib openpyxl numpy`
 
-`git clone https://github.com/your-username/your-repository.git
-cd your-repository`
+```pip install streamlit pandas matplotlib openpyxl numpy```
 
-`pip install -r requirements.txt`
+```git clone https://github.com/your-username/your-repository.git```
+```cd your-repository```
 
-`streamlit run test.py`
-```
+```pip install -r requirements.txt```
+
+```streamlit run test.py```
+
 **Upload an Excel file containing the acoustic absorption data. The file should include a "DATA" sheet with the following (or similar) columns:**
 
 sample_number_stn: Sample ID
