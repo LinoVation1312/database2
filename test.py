@@ -154,3 +154,30 @@ if uploaded_file:
                     
                     # Afficher le graphique dans Streamlit avec largeur adaptative
                     st.pyplot(fig, use_container_width=True)
+
+                    # Générer le PDF
+                    pdf_bytes = io.BytesIO()
+                    with PdfPages(pdf_bytes) as pdf:
+                        pdf.savefig(fig, bbox_inches="tight")
+                    pdf_bytes.seek(0)
+
+                    # Bouton de téléchargement PDF
+                    st.download_button(
+                        label="Télécharger le graphique en PDF",
+                        data=pdf_bytes,
+                        file_name="courbes_absorption.pdf",
+                        mime="application/pdf"
+                    )
+
+                    # Générer l'image JPEG
+                    img_bytes = io.BytesIO()
+                    fig.savefig(img_bytes, format="jpeg")
+                    img_bytes.seek(0)
+
+                    # Bouton de téléchargement JPEG
+                    st.download_button(
+                        label="Télécharger le graphique en JPEG",
+                        data=img_bytes,
+                        file_name="courbes_absorption.jpeg",
+                        mime="image/jpeg"
+                    )
