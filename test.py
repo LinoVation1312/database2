@@ -186,3 +186,18 @@ if uploaded_file:
                         file_name="courbes_absorption.jpeg",
                         mime="image/jpeg"
                     )
+# Display the Git URL with the new formatting
+st.markdown(
+    '<p style="color: blue; font-size: 14px; text-align: center;">'
+    '<br><br><br>'  # Adds spacing between the elements
+    '<br><br><br>'
+    '<br><br><br>'
+    '<br><br><br>'
+    '<br><br><br>'
+    'GitHub Link: <a href="https://github.com/LinoVation1312/database" style="color: blue; text-decoration: none;" target="_blank">'
+    'https://github.com/LinoVation1312/database</a>'
+    '<br><br><br>'
+    'Lino CONORD, Déc. 2024'
+    '</p>',
+    unsafe_allow_html=True
+)
