@@ -8,6 +8,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 from sklearn.cluster import KMeans
+from scipy.integrate import simps
 
 # Définir la configuration de la page
 st.set_page_config(
@@ -223,29 +224,71 @@ if uploaded_file:
                                     ax=ax)
                         st.pyplot(fig)
                 
+                   # Remplacer la section "Analyse Fréquentielle" par :
                     with tab3:
-                        st.subheader("Impact des Paramètres Matériaux")
-                        selected_freq = st.select_slider(
-                            "Sélectionnez une fréquence spécifique:",
-                            options=filtered_data['frequency'].unique()
+                        st.subheader("Analyse par Bande Fréquentielle")
+                        
+                        # Calcul automatique des plages fréquentielles significatives
+                        relevant_freq_ranges = {
+                            "Basses fréquences (100-500 Hz)": (100, 500),
+                            "Moyennes fréquences (500-2000 Hz)": (500, 2000),
+                            "Hautes fréquences (2000-6000 Hz)": (2000, 6000)
+                        }
+                        
+                        selected_range = st.selectbox(
+                            "Plage fréquentielle cible:",
+                            options=list(relevant_freq_ranges.keys())
                         )
+                        fmin, fmax = relevant_freq_ranges[selected_range]
                         
-                        fig = plt.figure(figsize=(12,5))
-                        plt.subplot(121)
-                        sns.scatterplot(data=filtered_data[filtered_data['frequency'] == selected_freq],
-                                        x=surface_mass_column,
-                                        y=absorption_type,
-                                        hue='material_family',
-                                        size='thickness_mm',
-                                        sizes=(20, 200))
-                        plt.title(f"Relation Masque Surf./Absorption @ {selected_freq}Hz")
+                        # Calcul du NRC (Noise Reduction Coefficient)
+                        def calculate_nrc(data):
+                            freqs = np.array(data['frequency'])
+                            alpha = np.array(data[absorption_type])
+                            mask = (freqs >= 250) & (freqs <= 2000)
+                            return round(np.mean(alpha[mask]).mean() * 2, 2) / 2
                         
-                        plt.subplot(122)
-                        sns.boxplot(data=filtered_data[filtered_data['frequency'] == selected_freq],
-                                    x='material_family',
-                                    y=absorption_type)
-                        plt.xticks(rotation=45)
-                        st.pyplot(fig)
+                        # Calcul des indicateurs acoustiques
+                        filtered_range = filtered_data[
+                            (filtered_data['frequency'] >= fmin) & 
+                            (filtered_data['frequency'] <= fmax)
+                        ]
+                        
+                        if not filtered_range.empty:
+                            # Visualisation de l'absorption intégrée
+                            fig = plt.figure(figsize=(12,5))
+                            
+                            # Graphique d'absorption pondérée
+                            plt.subplot(121)
+                            for material in filtered_range['material_family'].unique():
+                                material_data = filtered_range[filtered_range['material_family'] == material]
+                                plt.plot(material_data['frequency'], material_data[absorption_type], 
+                                        label=material, alpha=0.7)
+                            plt.title("Réponse fréquentielle par matériau")
+                            plt.xscale('log')
+                            
+                            # Calcul des indicateurs
+                            nrc_values = filtered_range.groupby('material_family').apply(calculate_nrc)
+                            peak_alpha = filtered_range.groupby('material_family')[absorption_type].max()
+                            
+                            # Affichage des indicateurs
+                            plt.subplot(122)
+                            plt.bar(nrc_values.index, nrc_values.values, alpha=0.6, label='NRC')
+                            plt.bar(peak_alpha.index, peak_alpha.values, alpha=0.6, label='Alpha max')
+                            plt.xticks(rotation=45)
+                            plt.legend()
+                            plt.title("Indicateurs de performance")
+                            
+                            st.pyplot(fig)
+                            
+                            # Avertissement scientifique
+                            st.info("""
+                            **Interprétation acoustique :**
+                            - NRC (Noise Reduction Coefficient) : Moyenne des α sur 250-2000 Hz
+                            - Alpha max : Valeur maximale dans la plage sélectionnée
+                            """)
+                        else:
+                            st.warning("Aucune donnée dans cette plage fréquentielle")
                 
                     with tab4:
                         st.subheader("Modélisation Linéaire")
