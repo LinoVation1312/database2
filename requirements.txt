@@ -1,6 +1,36 @@
-streamlit
-pandas
-matplotlib
-openpyxl
-seaborn
-sklearn
+# Core dependencies
+streamlit==1.29.0  # Framework principal
+numpy==1.26.0  # Calcul numérique
+pandas==2.1.1  # Manipulation des données
+openpyxl==3.1.2  # Lecture des fichiers Excel
+
+# Data visualization
+matplotlib==3.8.0  # Graphiques de base
+seaborn==0.13.0  # Visualisations statistiques
+plotly==5.18.0  # Graphiques interactifs
+
+# Machine learning & statistics
+scikit-learn==1.3.2  # Modélisation et clustering
+statsmodels==0.14.0  # Analyses statistiques avancées
+
+# Data processing
+scipy==1.11.3  # Fonctions scientifiques
+numba==0.58.1  # Optimisation des calculs
+
+# PDF generation
+reportlab==4.0.4  # Génération de PDF
+PyPDF2==3.0.1  # Manipulation de PDF
+
+# Image handling
+Pillow==10.0.1  # Manipulation d'images
+imageio==2.31.5  # Conversion d'images
+
+# Optional dependencies for advanced features
+ipywidgets==8.1.1  # Widgets interactifs
+tqdm==4.66.1  # Barres de progression
+joblib==1.3.2  # Parallélisation des calculs
+
+# Development tools
+black==23.9.1  # Formattage du code
+flake8==6.1.0  # Linting
+pytest==7.4.2  # Tests unitaires
