@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import io
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+import seaborn as sns
+
 # Définir la configuration de la page
 st.set_page_config(
     page_title="DATABASE",  # Titre de l'onglet
@@ -186,6 +190,86 @@ if uploaded_file:
                         file_name="courbes_absorption.jpeg",
                         mime="image/jpeg"
                     )
+                
+                    st.header("Analyse Statistique Avancée")
+                    
+                    # Onglets pour organiser les différentes analyses
+                    tab1, tab2, tab3, tab4 = st.tabs([
+                        "📊 Statistiques Clés",
+                        "📈 Corrélations",
+                        "🔍 Analyse Fréquentielle",
+                        "🧮 Modélisation"
+                    ])
+                
+                    with tab1:
+                        st.subheader("Indicateurs de Performance")
+                        stats_df = filtered_data.groupby('sample_info').agg({
+                            'alpha_cabin': ['mean', 'max', 'min', 'std'],
+                            'alpha_kundt': ['mean', 'max', 'min', 'std']
+                        })
+                        st.dataframe(stats_df.style.background_gradient(cmap='Blues'), height=300)
+                
+                    with tab2:
+                        st.subheader("Matrice de Corrélation")
+                        numerical_cols = [surface_mass_column, 'thickness_mm', 'alpha_cabin', 'alpha_kundt']
+                        corr_matrix = filtered_data[numerical_cols].corr()
+                        
+                        fig, ax = plt.subplots(figsize=(10,6))
+                        sns.heatmap(corr_matrix, 
+                                    annot=True, 
+                                    cmap='coolwarm', 
+                                    center=0,
+                                    ax=ax)
+                        st.pyplot(fig)
+                
+                    with tab3:
+                        st.subheader("Impact des Paramètres Matériaux")
+                        selected_freq = st.select_slider(
+                            "Sélectionnez une fréquence spécifique:",
+                            options=filtered_data['frequency'].unique()
+                        )
+                        
+                        fig = plt.figure(figsize=(12,5))
+                        plt.subplot(121)
+                        sns.scatterplot(data=filtered_data[filtered_data['frequency'] == selected_freq],
+                                        x=surface_mass_column,
+                                        y=absorption_type,
+                                        hue='material_family',
+                                        size='thickness_mm',
+                                        sizes=(20, 200))
+                        plt.title(f"Relation Masque Surf./Absorption @ {selected_freq}Hz")
+                        
+                        plt.subplot(122)
+                        sns.boxplot(data=filtered_data[filtered_data['frequency'] == selected_freq],
+                                    x='material_family',
+                                    y=absorption_type)
+                        plt.xticks(rotation=45)
+                        st.pyplot(fig)
+                
+                    with tab4:
+                        st.subheader("Modélisation Linéaire")
+                        freq_range = st.slider(
+                            "Fréquence cible pour la modélisation:",
+                            min_value=int(filtered_data['frequency'].min()),
+                            max_value=int(filtered_data['frequency'].max()),
+                            value=1000
+                        )
+                        
+                        # Préparation des données
+                        model_data = filtered_data[filtered_data['frequency'] == freq_range]
+                        X = model_data[[surface_mass_column, 'thickness_mm']]
+                        y = model_data[absorption_type]
+                        
+                        # Entraînement du modèle
+                        model = LinearRegression()
+                        model.fit(X, y)
+                        
+                        # Affichage des résultats
+                        st.write(f"#### Coefficients @ {freq_range}Hz")
+                        st.write(f"- Masse surfacique: {model.coef_[0]:.4f}")
+                        st.write(f"- Épaisseur: {model.coef_[1]:.4f}")
+                        st.write(f"- Intercept: {model.intercept_:.4f}")
+                        st.write(f"R²: {model.score(X, y):.2f}")
 # Display the Git URL with the new formatting
 st.markdown(
     '<p style="color: blue; font-size: 14px; text-align: center;">'
