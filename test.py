@@ -273,36 +273,36 @@ if uploaded_file:
                         st.write(f"R²: {model.score(X, y):.2f}")
 
 
-# Ajouter un nouvel onglet
-with st.expander("🔬 Analyse Comparative par Matériau"):
-    st.subheader("Performance par Famille de Matériaux")
-    
-    material_choice = st.selectbox(
-        "Choisir une famille de matériaux:",
-        options=df['material_family'].unique()
-    )
-    
-    fig = plt.figure(figsize=(12,6))
-    
-    # Data preparation
-    material_data = df[df['material_family'] == material_choice]
-    avg_absorption = material_data.groupby('frequency')[['alpha_cabin', 'alpha_kundt']].mean()
-    
-    # Plotting
-    plt.plot(avg_absorption.index, avg_absorption['alpha_cabin'], label='Alpha Cabin')
-    plt.plot(avg_absorption.index, avg_absorption['alpha_kundt'], label='Alpha Kundt')
-    
-    plt.fill_between(
-        avg_absorption.index,
-        avg_absorption['alpha_cabin'],
-        alpha=0.2
-    )
-    
-    plt.xscale('log')
-    plt.title(f"Performance Moyenne - {material_choice}")
-    plt.legend()
-    st.pyplot(fig)
-
+if uploaded_file and df is not None:  # Vérification de l'existence de df
+    with st.expander("🔬 Analyse Comparative par Matériau"):
+        st.subheader("Performance par Famille de Matériaux")
+        
+        # Utilisation du df filtré
+        material_choice = st.selectbox(
+            "Choisir une famille de matériaux:",
+            options=filtered_df['material_family'].unique()  # Utilisation de filtered_df
+        )
+        
+        fig = plt.figure(figsize=(12,6))
+        
+        # Data preparation avec le dataframe filtré
+        material_data = filtered_df[filtered_df['material_family'] == material_choice]
+        avg_absorption = material_data.groupby('frequency')[['alpha_cabin', 'alpha_kundt']].mean()
+        
+        # Plotting
+        plt.plot(avg_absorption.index, avg_absorption['alpha_cabin'], label='Alpha Cabin')
+        plt.plot(avg_absorption.index, avg_absorption['alpha_kundt'], label='Alpha Kundt')
+        
+        plt.fill_between(
+            avg_absorption.index,
+            avg_absorption['alpha_cabin'],
+            alpha=0.2
+        )
+        
+        plt.xscale('log')
+        plt.title(f"Performance Moyenne - {material_choice}")
+        plt.legend()
+        st.pyplot(fig)
 
 # Display the Git URL with the new formatting
 st.markdown(
