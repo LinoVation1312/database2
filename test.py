@@ -7,6 +7,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
+from sklearn.cluster import KMeans
 
 # Définir la configuration de la page
 st.set_page_config(
@@ -270,6 +271,39 @@ if uploaded_file:
                         st.write(f"- Épaisseur: {model.coef_[1]:.4f}")
                         st.write(f"- Intercept: {model.intercept_:.4f}")
                         st.write(f"R²: {model.score(X, y):.2f}")
+
+
+# Ajouter un nouvel onglet
+with st.expander("🔬 Analyse Comparative par Matériau"):
+    st.subheader("Performance par Famille de Matériaux")
+    
+    material_choice = st.selectbox(
+        "Choisir une famille de matériaux:",
+        options=df['material_family'].unique()
+    )
+    
+    fig = plt.figure(figsize=(12,6))
+    
+    # Data preparation
+    material_data = df[df['material_family'] == material_choice]
+    avg_absorption = material_data.groupby('frequency')[['alpha_cabin', 'alpha_kundt']].mean()
+    
+    # Plotting
+    plt.plot(avg_absorption.index, avg_absorption['alpha_cabin'], label='Alpha Cabin')
+    plt.plot(avg_absorption.index, avg_absorption['alpha_kundt'], label='Alpha Kundt')
+    
+    plt.fill_between(
+        avg_absorption.index,
+        avg_absorption['alpha_cabin'],
+        alpha=0.2
+    )
+    
+    plt.xscale('log')
+    plt.title(f"Performance Moyenne - {material_choice}")
+    plt.legend()
+    st.pyplot(fig)
+
+
 # Display the Git URL with the new formatting
 st.markdown(
     '<p style="color: blue; font-size: 14px; text-align: center;">'
