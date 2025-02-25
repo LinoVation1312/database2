@@ -8,7 +8,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 from sklearn.cluster import KMeans
-from scipy.integrate import simps
 
 # Définir la configuration de la page
 st.set_page_config(
@@ -241,12 +240,18 @@ if uploaded_file:
                         )
                         fmin, fmax = relevant_freq_ranges[selected_range]
                         
-                        # Calcul du NRC (Noise Reduction Coefficient)
+                        # Modifier la fonction calculate_nrc
                         def calculate_nrc(data):
                             freqs = np.array(data['frequency'])
                             alpha = np.array(data[absorption_type])
                             mask = (freqs >= 250) & (freqs <= 2000)
-                            return round(np.mean(alpha[mask]).mean() * 2, 2) / 2
+                            
+                            # Utilisation de numpy.trapz pour l'intégration
+                            integrated_alpha = np.trapz(alpha[mask], freqs[mask])
+                            bandwidth = freqs[mask].max() - freqs[mask].min()
+                            
+                            # Normalisation pour obtenir un coefficient entre 0 et 1
+                            return round((integrated_alpha / bandwidth) * 2, 2) / 2
                         
                         # Calcul des indicateurs acoustiques
                         filtered_range = filtered_data[
